@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title> F5-puzzle </title>	
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset='utf-8'/>
+ </head>
+<body id="c" style="margin:0;touch-action:manipulation;overscroll-behavior:contain">  
+	<canvas  style="margin:auto;display:block;display:none;" id="b"></canvas> 
+	<div style="display:flex; flex-direction:column;">	
+      <div id="s" style="color:#a0a0a0;padding:4px">Moves: 0</div>	 
+	  <canvas style="background:#000;margin:auto;display:block;box-shadow: 0px 6px 12px 2px rgba(120, 120, 120, 0.7), 0px 8px 20px 2px rgba(120, 120, 120, 0.68);" id="a"></canvas>
+   </div> 
+<script>
+	let alpha;
+	let gl;
+	let buffer;
+    let zzfx=(...t)=>zzfxP(zzfxG(...t))
+    let zzfxP=(...t)=>{let e=zzfxX.createBufferSource(),f=zzfxX.createBuffer(t.length,t[0].length,zzfxR);t.map((d,i)=>f.getChannelData(i).set(d)),e.buffer=f,e.connect(zzfxX.destination),e.start();return e}
+    let zzfxG=(q=1,k=.05,c=220,e=0,t=0,u=.1,r=0,F=1,v=0,z=0,w=0,A=0,l=0,B=0,x=0,G=0,d=0,y=1,m=0,C=0)=>{let b=2*Math.PI,H=v*=500*b/zzfxR**2,I=(0<x?1:-1)*b/4,D=c*=(1+2*k*Math.random()-k)*b/zzfxR,Z=[],g=0,E=0,a=0,n=1,J=0,K=0,f=0,p,h;e=99+zzfxR*e;m*=zzfxR;t*=zzfxR;u*=zzfxR;d*=zzfxR;z*=500*b/zzfxR**3;x*=b/zzfxR;w*=b/zzfxR;A*=zzfxR;l=zzfxR*l|0;for(h=e+m+t+u+d|0;a<h;Z[a++]=f)++K%(100*G|0)||(f=r?1<r?2<r?3<r?Math.sin((g%b)**3):Math.max(Math.min(Math.tan(g),1),-1):1-(2*g/b%2+2)%2:1-4*Math.abs(Math.round(g/b)-g/b):Math.sin(g),f=(l?1-C+C*Math.sin(2*Math.PI*a/l):1)*(0<f?1:-1)*Math.abs(f)**F*q*zzfxV*(a<e?a/e:a<e+m?1-(a-e)/m*(1-y):a<e+m+t?y:a<h-d?(h-a-d)/u*y:0),f=d?f/2+(d>a?0:(a<h-d?1:(h-a)/d)*Z[a-d|0]/2):f),p=(c+=v+=z)*Math.sin(E*x-I),g+=p-p*B*(1-1E9*(Math.sin(a)+1)%2),E+=p-p*B*(1-1E9*(Math.sin(a)**2+1)%2),n&&++n>A&&(c+=w,D+=w,n=0),!l||++J%l||(c=D,v=H,n=n||1);return Z}
+    let zzfxV=.3;
+    let zzfxR=44100;
+    let zzfxX=new(window.AudioContext||webkitAudioContext);
+    let zzfxM=(n,f,t,e=125)=>{let l,o,z,r,g,h,x,a,u,c,d,i,m,p,G,M=0,R=[],b=[],j=[],k=0,q=0,s=1,v={},w=zzfxR/e*60>>2;for(;s;k++)R=[s=a=d=m=0],t.map((e,d)=>{for(x=f[e][k]||[0,0,0],s|=!!f[e][k],G=m+(f[e][0].length-2-!a)*w,p=d==t.length-1,o=2,r=m;o<x.length+p;a=++o){for(g=x[o],u=o==x.length+p-1&&p||c!=(x[0]||0)|g|0,z=0;z<w&&a;z++>w-99&&u?i+=(i<1)/99:0)h=(1-i)*R[M++]/2||0,b[r]=(b[r]||0)-h*q+h,j[r]=(j[r++]||0)+h*q+h;g&&(i=g%1,q=x[1]||0,(g|=0)&&(R=v[[c=x[M=0]||0,g]]=v[[c,g]]||(l=[...n[c]],l[2]*=2**((g-12)/12),g>0?zzfxG(...l):[])))}m=G});return[b,j]}	
+	
+	
+
+
+let first;
+let front;
+let back; 
+let csize;
+let bsize;
+let ctx;
+let hctx;
+let tile;
+let tileSize;
+let fps;
+let offset;
+let conf;
+let empty;	
+let background;
+let board;
+let scaleFactor;
+let realOffset;
+let realTileSize;
+let AMP;
+let dim;
+let time;
+let cont;
+let movestxt;
+let moves;
+let grd;
+let alt;
+let body;
+
+
+function releaseCanvas(canvas) {
+    canvas.width = 1;
+    canvas.height = 1;
+    const ctx = canvas.getContext('2d');
+    ctx && ctx.clearRect(0, 0, 1, 1);
+}
+
+function Dec(t, e) {
+    return Math.random() * (e - t) + t
+}
+
+function Int(t, e) {
+    return Math.floor(Math.random() * (e - t + 1) + t)
+}
+
+function refresh() {
+	var centerX,centerY,dSize,gap,dArray,d1,d2,d3,d4,d5,dIndex,design,increment,theta;
+	var grd=hctx.createLinearGradient(0,Math.floor(4096*Math.random()),Math.floor(4096*Math.random()),Math.floor(4096*Math.random()));grd.addColorStop(Math.random(),"#000000"),grd.addColorStop(Math.random(),"#6B6B6B"),grd.addColorStop(Math.random(),"#5B5B5B"),hctx.fillStyle=grd,hctx.fillRect(0,0,4096,4096);for(centerX=Math.floor(2048*Math.random()),centerY=Math.floor(2048*Math.random()),dSize=(hctx.moveTo(centerX,centerY),Dec(9e4,13e4)),gap=Math.floor(+Math.random())+.0079,d1=397.7318599293077,d2=475.9486803704857,dArray=[d1,d2],dIndex=Int(0,1),design=dArray[dIndex],increment=design,theta=increment;theta<Math.floor(50.090909095*Math.random())+dSize;){var newX=centerX+theta*Math.cos(theta)*gap,newY=centerY+theta*Math.sin(theta)*gap;hctx.lineTo(newX,newY),theta+=increment}hctx.shadowBlur=10,hctx.shadowColor="#222222",hctx.shadowOffsetX=Dec(-5,5),hctx.shadowOffsetY=Dec(-5,5),hctx.strokeStyle="#ffffff",hctx.lineWidth=3,hctx.stroke();
+}
+
+
+
+function init(){
+  //START CONFIG PARAM
+   
+  //Dim represents the size of the puzzle. By default, dim=4 and represents
+  //a 4x4 puzzle. Change it to a different natural number to generate puzzles 
+  //of different sizes. 
+  dim=4;	
+  
+  // conf represents the initial configuration.
+  // When dim is 4, numbers 1-15 represent valid tiles, while 16 is the blank tile. 
+  //More in general, if you have a dim=n puzzle, conf will contain n*n numbers.
+  //Numbers between 1 and (n*n-1) are tile numbers and number (n*n) is the blank tile
+  conf=[2,3,1,4,5,6,7,8,9,10,11,12,13,14,15,16];
+  // END CONFIG PARAM
+  
+  cont=true;	
+  let gradientBG;
+  	 	
+   first=true;
+  for(let i=0;i<dim*dim;i++)
+	  conf[i]--;
+  let valid=dim%2==0?validE:validO;
+  if (valid()) console.log("Valid initial configuration");
+  else console.log("Initial configuration is not valid. Please, change the conf values.");
+ 
+  fps=30;
+  moves = 0;
+  empty=dim*dim-1;	
+  offset=dim%2==0?106:107;
+  body=document.getElementById("c");
+  front = document.getElementById('a');
+  back = document.getElementById('b');
+  movestxt = document.getElementById('s');
+  body.style.height="100vh";
+  
+  let ra =[Math.random()*100|0,
+	  Math.random()*100|0,
+	  Math.random()*100|0,
+	  Math.random()*100|0,Math.random()*100|0]; 
+	  
+
+	  
+	  gradientBG="linear-gradient("+(Math.floor(Math.random()*360))+"deg,#000 "+ra[0]+ "%,#6B6B6B "+ra[1]+"%,#5B5B5B "+ra[2]+"%)";
+	  
+  body.style.background=gradientBG;
+  front.style.background="linear-gradient("+(Math.floor(Math.random()*120))+"deg,#909090 "+ra[0]+ "%,#d0d0d0 "+ra[1]+"%,#fff "+ra[2]+"%,#d0d0d0 "+ra[2]+"%)";
+  csize=4096;
+  bsize= csize-offset*2;
+  back.width=back.height=front.width = front.height = csize;
+  if (window.innerHeight<window.innerWidth)
+    back.style.height=back.style.width=front.style.width=front.style.height="80vh";
+  else
+	back.style.height=back.style.width=front.style.width=front.style.height="80vw";
+  
+  board = front.getBoundingClientRect();
+  scaleFactor = board.width/csize;
+  realOffset= offset*scaleFactor;
+  realTileSize=(board.width-realOffset*2)/dim;
+  movestxt.style.textAlign="center";
+  movestxt.style.font= (board.width/14)+"px fantasy";
+  alt=movestxt.getBoundingClientRect().height;    
+  ctx = front.getContext('2d',{ willReadFrequently: true });
+  hctx = back.getContext('2d',{ willReadFrequently: true });
+  ctx.textAlign = "center";
+  hctx.textAlign = "center";
+  tile=[];
+  tileSize=bsize/dim;
+  ctx.fillStyle="#fff";
+  ctx.fillRect(offset,offset,bsize,bsize);
+  background=[];
+  
+  for(let i=0;i<dim;i++)
+	  for(let j=0;j<dim;j++)
+        background[i*dim+j]=ctx.getImageData(offset+j*tileSize,offset+i*tileSize,tileSize,tileSize);
+  
+
+  hctx.scale(2,2);
+  refresh();
+  hctx.scale(1,1);
+ 
+  generateTiles();
+  releaseCanvas(back);
+  window.addEventListener("resize",winResize,true);
+  front.removeEventListener("mousedown",move,true);
+  intro();
+ 
+}
+
+
+function play(){
+	front.removeEventListener("mousedown",play,true);
+    front.addEventListener("mousedown",move,true);
+	
+    
+	time = performance.now();
+	draw();
+	
+	
+}
+
+
+
+function intro(){
+	ctx.save();
+	var grd = ctx.createLinearGradient(offset/2, offset/2,bsize,bsize);
+	
+	grd.addColorStop(0.1, "#000000");
+	grd.addColorStop(0.4, "#6B6B6B");
+	grd.addColorStop(0.8, "#5B5B5B");
+	
+	
+	
+	
+	var title="F5 puzzle";
+	var m=ctx.measureText(title);
+	ctx.textAlign="center";
+	
+	ctx.font="700px sans-serif";
+	ctx.shadowColor="#000";
+	ctx.shadowBlur=40;
+	
+	ctx.fillStyle=grd;
+	ctx.fillText("F5 puzzle",csize/2+20,csize/2);
+	ctx.fillText("F5 puzzle",csize/2-20,csize/2);
+	ctx.shadowBlur=0;
+	ctx.strokeStyle="#000";
+	ctx.strokeText("F5 puzzle",csize/2,csize/2);
+	ctx.restore();
+	front.addEventListener("mousedown",play,true);
+}
+let avg;
+
+function draw(){
+    if (cont) gl=requestAnimationFrame(draw);
+    let now = performance.now();
+    let dt = now - time;	
+    if (dt < (1000 / fps)) {	
+      return;
+    } 
+    time=now;
+	movestxt.innerHTML="Moves: "+moves;
+    
+    let win=status();
+    showTiles(win);
+  
+ 
+ 
+}
+
+function generateTiles(){
+	for(let i=0;i<dim;i++)
+		for(let j=0;j<dim;j++)
+	      tile[i*dim+j]=hctx.getImageData(offset+j*tileSize,offset+i*tileSize,tileSize,tileSize);
+}
+
+
+ 
+function showTiles(won){
+	ctx.textBaseline="middle";
+	
+	for(let i=0;i<dim;i++)
+		for(let j=0;j<dim;j++)
+			if(conf[i*dim+j]!=empty)
+	          { 
+				ctx.putImageData(tile[conf[i*dim+j]],offset+j*tileSize,offset+i*tileSize);
+				if(!won){
+					
+			      ctx.save();
+				  ctx.font="150px monospace";
+				  ctx.fillStyle="#fff";
+			      ctx.strokeStyle="#000";
+				  ctx.lineWidth=22;
+			      ctx.beginPath();
+			      ctx.arc(offset+j*tileSize+tileSize/2,offset+i*tileSize+tileSize/2,180,0,2*Math.PI);
+			      ctx.fill();
+			      ctx.stroke(); 
+				  ctx.fillStyle="#000";
+	
+				  ctx.textAlign="center";
+				  ctx.fillText(conf[i*dim+j]+1,offset+j*tileSize+tileSize/2,offset+i*tileSize+tileSize/2);
+				
+				  ctx.restore();
+				 } 
+			  }
+			  else{
+				
+
+	          if (won){
+				  cont=false;
+			  	
+			          front.removeEventListener("mousedown",move,true);	
+				 
+				 
+				 
+				  if (first){first=false;zzfx(...[1.96,,628,.08,.22,.31,,.71,,-2.5,-724,.05,.12,,,,.09,.43,.17,.39]); } 
+				  ctx.putImageData(tile[dim*dim-1],offset+j*tileSize,offset+i*tileSize);
+				  }	
+			  else 
+	              ctx.putImageData(background[i*dim+j],offset+j*tileSize,offset+i*tileSize);
+				   			   
+			  }	
+				  
+}
+
+function shuffle(array) {
+  array.sort(() => Math.random() - 0.5);
+}
+
+function countInv(a,idx){
+  let inv=0;
+  for(let i=idx+1;i<a.length;i++)
+	  if(a[idx]>a[i]) inv++;
+  return inv;  
+}
+
+function validO(){
+   let sum;
+   let solvable = false;
+   let posempty;	
+  
+   sum=0;
+	 
+   for(let i=0;i<conf.length;i++)
+	   if (conf[i]!=empty)
+		   sum +=countInv(conf,i);
+	   else
+		   posempty=dim-parseInt(i/dim,10);
+	 if (sum%2==0)
+		   solvable=true;   	   	   	   
+   
+   return solvable;
+}  
+
+function validE(){
+   let sum;
+   let solvable = false;
+   let posempty;	
+
+     sum=0;
+	 
+     for(let i=0;i<conf.length;i++)
+	   if (conf[i]!=empty)
+		   sum +=countInv(conf,i);
+	   else
+		   posempty=dim-parseInt(i/dim,10);
+	 if ((sum%2==0 && posempty%2!=0)||((sum%2!=0 && posempty%2==0)))
+		   solvable=true;   
+   return solvable;	 	   	   	   
+}   
+
+function winResize(evt){
+	evt.preventDefault();
+	evt.stopImmediatePropagation();
+	evt.stopPropagation();
+	window.removeEventListener("resize",winResize,true);
+	releaseCanvas(front);
+	releaseCanvas(back);
+	cancelAnimationFrame(gl);
+	init();
+}
+
+
+
+function move(event){
+	event.preventDefault();
+	event.stopImmediatePropagation();
+	event.stopPropagation();
+	let xpos=event.clientX-(board.left+realOffset);
+	let ypos=event.clientY-(alt+realOffset);
+
+
+	let temp;
+	if (xpos>realOffset && ypos>realOffset && xpos <board.width-realOffset && ypos<board.width-realOffset){
+	  let col = (xpos/realTileSize)|0;
+	  let row = (ypos/realTileSize)|0;
+      
+	  for(let i=-1;i<=1;i+=2){
+		  if ((row+i)>=0 && (row+i)<dim)
+	         if (conf[(row+i)*dim+col] == empty){
+				 moves++;
+				 temp=conf[(row+i)*dim+col];
+				 conf[(row+i)*dim+col]=conf[row*dim+col];
+				 conf[row*dim+col]=temp;
+				 zzfx(...[2.44,,84,,.01,.01,,1.52,,,-897,.06,,,2.5,.1,.23,.33,.01]);
+	         }
+   		  if ((col+i)>=0 && (col+i)<dim)
+   	         if (conf[row*dim+col+i] == empty){
+				 moves++;
+				 temp=conf[row*dim+col+i];
+				 conf[row*dim+col+i]=conf[row*dim+col];
+				 conf[row*dim+col]=temp;
+				 zzfx(...[2.44,,84,,.01,.01,,1.52,,,-897,.06,,,2.5,.1,.23,.33,.01]);
+   	         }	 
+	  }	 
+    }   
+}   
+
+function status(){
+	for(let i=0;i<(dim*dim);i++)
+		if (conf[i]>conf[i+1]) return false;
+	return true;
+}
+
+
+window.addEventListener("pagehide",
+t=>{var e=document.getElementsByTagName("canvas");Array.prototype.slice.call(e).forEach(releaseCanvas)});
+init();
+</script>
+</body>
+</html>
